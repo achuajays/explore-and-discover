@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { DestinationCard } from "@/components/DestinationCard";
 import { useQuery } from "@tanstack/react-query";
+import { Search as SearchIcon, RefreshCw } from "lucide-react";
 
 interface Destination {
   title: string;
@@ -15,14 +17,17 @@ interface Destination {
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: destinations = [], isLoading, error } = useQuery({
+  const { data: destinations = [], isLoading, error, refetch } = useQuery({
     queryKey: ["destinations"],
     queryFn: async () => {
+      console.log("Fetching destinations...");
       const response = await fetch("http://localhost:8000/destination");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Fetched destinations:", data);
+      return data;
     },
   });
 
@@ -33,21 +38,39 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-neutral p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-6">
-            Search Destinations
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-primary mb-4">
+            Find Your Dream Destination
           </h1>
-          <Input
-            type="text"
-            placeholder="Search destinations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            Search through our curated collection of destinations. Each location comes with detailed information about flights, 
+            duration, and local attractions to help you make the perfect choice.
+          </p>
+          
+          <div className="flex gap-4 max-w-md mx-auto mb-8">
+            <Input
+              type="text"
+              placeholder="Search destinations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              onClick={() => refetch()} 
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {isLoading && (
-          <div className="text-center text-gray-600">Loading destinations...</div>
+          <div className="text-center text-gray-600">
+            <RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" />
+            Loading destinations...
+          </div>
         )}
 
         {error && (
